@@ -1,0 +1,74 @@
+\documentclass[11pt]{article}
+\usepackage{acl}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+
+\title{HedgeBERT: Hedge-Aware Sentiment Classification via CLS\@ Feature Injection}
+
+\author{
+  Minh Tran \\
+  Wichita State University \\
+  \texttt{K699E569@wichita.edu}
+  \And
+  An Nguyen \\
+  Wichita State University \\
+  \texttt{R374G648@wichita.edu}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+% Write your abstract here (2-4 sentences summarizing the problem, your approach, and expected contribution)
+Sentiment analysis models struggle with classifying hedged language, as it can be less direct and ambiguous. 
+Hedge Language is also common in many real world scenarios such as social media posts or product reviews.
+Mistaking a negative review with hedged language for a positive one on a product can lead to a company not evaluating their product properly.
+We propose HedgeBERT which is a modified BERT model which encodes a hedge intensity score into the CLS token to help BERT better make decisions on hedged languages.
+We expect HedgeBERT to demonstrate measurable accuracy improvement on hedged consumer sentiment without degrading performance on direct sentiment.
+\end{abstract}
+
+\section{Introduction}
+% What is the problem? Why does it matter? 
+% Briefly introduce hedged language and why sentiment classifiers fail on it.
+% End with a summary of your contribution (HedgeBERT).
+
+\section{Related Work}
+% Summarize existing work on:
+% 1. Sentiment analysis (Pang & Lee, BERT-based models)
+% 2. Hedge detection (BioScope, SFU corpus)
+% 3. What gap exists (nobody has used hedging to improve sentiment classification)
+
+\section{Research Question}
+% Clearly state your research question:
+% Can explicitly encoding hedge intensity as a feature improve 
+% the accuracy of BERT-based sentiment classifiers on hedged text?
+
+\section{Proposed Methodology}
+% Describe your three-part approach:
+% 1. Hedged-Sentiment Benchmark Dataset (~250 examples from Yelp/Amazon)
+% 2. Hedge Intensity Scorer (rule-based, outputs 0.0 to 1.0)
+% 3. CLS Feature Injection (concatenate hedge score to [CLS] before classification)
+
+\section{Evaluation Plan}
+% How will you measure success?
+% Compare HedgeBERT vs standard DistilBERT on hedged vs direct sentences
+% Metrics: Accuracy, F1 Score
+
+\section{Timeline}
+% Rough timeline of milestones:
+% Week 1-2: Dataset curation, hedge scorer
+% Week 3-4: Baseline model setup, CLS injection
+% Week 5-6: Fine-tuning, progress presentations (April 8 & 13)
+% Week 7: Evaluation
+% Week 8: Final report and presentation
+
+% Bibliography
+%\bibliography{custom}
+% uncomment once some things are in the bib i think
+
+\end{document}
