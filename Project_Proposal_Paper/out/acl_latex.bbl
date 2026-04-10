@@ -1,4 +1,44 @@
-\begin{thebibliography}{0}
+\begin{thebibliography}{8}
 \providecommand{\natexlab}[1]{#1}
+
+\bibitem[{Devlin et~al.(2019)Devlin, Chang, Lee, and Toutanova}]{devlin2019bert}
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2019.
+\newblock {BERT}: Pre-training of deep bidirectional transformers for language understanding.
+\newblock In \emph{Proceedings of the 2019 Conference of the North {A}merican Chapter of the Association for Computational Linguistics: Human Language Technologies}, pages 4171--4186.
+
+\bibitem[{Fasulo et~al.(2025)}]{fasulo2025checkthat}
+Alessandro Fasulo and 1 others. 2025.
+\newblock Checkthat! at {CLEF} 2025: Subjectivity and sentiment detection.
+\newblock In \emph{Proceedings of the 16th International Conference of the CLEF Association}.
+
+\bibitem[{Konstantinova et~al.(2012)Konstantinova, de~Sousa, D{\'{i}}az, L{\'{o}}pez, Taboada, and Mitkov}]{konstantinova2012sfu}
+Natalia Konstantinova, Sheila C.~M. de~Sousa, Noa P.~Cruz D{\'{i}}az, Manuel J.~Ma{\~{n}}a L{\'{o}}pez, Maite Taboada, and Ruslan Mitkov. 2012.
+\newblock A review corpus annotated for negation, speculation and their scope.
+\newblock In \emph{Proceedings of the Eighth International Conference on Language Resources and Evaluation (LREC)}, pages 3630--3637.
+
+\bibitem[{Pang and Lee(2008)}]{pang2008opinion}
+Bo~Pang and Lillian Lee. 2008.
+\newblock Opinion mining and sentiment analysis.
+\newblock \emph{Foundations and Trends in Information Retrieval}, 2(1--2):1--135.
+
+\bibitem[{Socher et~al.(2013)Socher, Perelygin, Wu, Chuang, Manning, Ng, and Potts}]{socher2013recursive}
+Richard Socher, Alex Perelygin, Jean Wu, Jason Chuang, Christopher~D. Manning, Andrew Ng, and Christopher Potts. 2013.
+\newblock Recursive deep models for semantic compositionality over a sentiment treebank.
+\newblock In \emph{Proceedings of the 2013 Conference on Empirical Methods in Natural Language Processing}, pages 1631--1642.
+
+\bibitem[{Taboada et~al.(2011)Taboada, Brooke, Tofiloski, Voll, and Stede}]{taboada2011lexicon}
+Maite Taboada, Julian Brooke, Milan Tofiloski, Kimberly Voll, and Manfred Stede. 2011.
+\newblock Lexicon-based methods for sentiment analysis.
+\newblock \emph{Computational Linguistics}, 37(2):267--307.
+
+\bibitem[{Vincze et~al.(2008)Vincze, Szarvas, Farkas, M{\'{o}}ra, and Csirik}]{vincze2008bioscope}
+Veronika Vincze, Gy{\"{o}}rgy Szarvas, Rich{\'{a}}rd Farkas, Gy{\"{o}}rgy M{\'{o}}ra, and J{\'{a}}nos Csirik. 2008.
+\newblock The {BioScope} corpus: Biomedical texts annotated for uncertainty, negation and their scopes.
+\newblock \emph{BMC Bioinformatics}, 9(S-11):S9.
+
+\bibitem[{Wei and Zou(2019)}]{wei2019eda}
+Jason Wei and Kai Zou. 2019.
+\newblock {EDA}: Easy data augmentation techniques for boosting performance on text classification tasks.
+\newblock In \emph{Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)}, pages 6382--6388.
 
 \end{thebibliography}
