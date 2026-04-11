@@ -11,7 +11,7 @@
 \title{HedgeBERT: Hedge-Aware Sentiment Classification via CLS Feature Injection}
 
 \author{
-  Minh Tran \\
+  Minh Tran\\
   Wichita State University \\
   \texttt{K699E569@wichita.edu}
   \And
@@ -63,7 +63,7 @@ on neural sentiment accuracy as a diagnostic category.
 This gap matters because sentiment analysis is deployed in high-stakes
 settings---customer feedback, healthcare, and market research---where hedged language
 is especially common. Standard benchmarks such as SST-2 \cite{socher2013recursive}
-and IMDb are dominated by clear-polarity examples, so a model that simply learns
+and IMDB are dominated by clear-polarity examples, so a model that simply learns
 strong cue words passes existing evaluations while failing silently on hedged input.
 Measuring and closing this gap is therefore both a scientific and a practical
 necessity.
@@ -119,17 +119,18 @@ before integration.
 \cite{devlin2019bert}. After encoding, the 768-dimensional CLS vector is concatenated
 with the hedge scalar to produce a 769-dimensional representation, which is passed to
 a re-initialized linear classification head. The model is fine-tuned on a
-hedge-augmented version of the Amazon Review Dataset (1,000+ examples), with
+hedge-augmented version of the Amazon Review Dataset (571.54 Reviews), with
 programmatic hedge injection following the EDA framework \cite{wei2019eda}. The loss
 is cross-entropy.
 
 \paragraph{Baselines and Ablations.} The primary metric is accuracy on the hedged
-and direct subsets separately for all models. Baselines include vanilla
-BERT-base-uncased, DeBERTa-v3-small (zero-shot), ELECTRA-small (zero-shot), and an
-LLM comparison via prompting (GPT-4o-mini). Ablations include HedgeBERT with a
-random scalar in place of the hedge score (to test scorer contribution) and BERT
-fine-tuned on augmented data without CLS injection (to isolate augmentation from
-architecture).
+and direct subsets separately for all models. Additionally we report the F1-score
+to account for any calss imbalance and to better see the model's trade offs between
+precision and recall. Baselines include vanilla BERT-base-uncased, DeBERTa-v3-small
+(zero-shot), ELECTRA-small (zero-shot), and an LLM comparison via prompting (GPT-4o-mini). 
+Ablations include HedgeBERT with a random scalar in place of the hedge score  
+(to test scorer contribution) and BERT fine-tuned on augmented data without 
+CLS injection (to isolate augmentation from architecture).
 
 \section{Evaluation Plan}
 
@@ -142,7 +143,15 @@ degrade hedged accuracy, confirming that the scorer provides a meaningful signal
 an additional reference point, the LLM comparison tests whether the problem persists
 at scale, validating that it cannot be solved by model size alone.
 
+
+
 \section{Timeline}
+
+The project is structured to see significant progress weekly or biweekly. 
+Where the early weeks focus on gathering and preprocessing data, creating 
+our hedge scorer, and setting up and injecting our CLS token into BERT. The 
+next weeks will be spent fine tuning models. Lastly the final weeks are meant
+for evaluation, analysis, and reviewing of results.  
 
 \begin{table}[h]
 \centering
