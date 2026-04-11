@@ -1,0 +1,4 @@
+pandas
+nltk
+datasets==2.17.0
+scikit-learn
