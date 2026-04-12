@@ -1,7 +1,12 @@
 import os
 import csv
 import argparse
+from pathlib import Path
 from xml.etree import ElementTree as ET
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+RAW_CORPUS_DIR = PROJECT_ROOT / "data" / "raw"
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 def get_label(filename):
     """Derive sentiment label from filename prefix.
@@ -127,13 +132,13 @@ def main():
     parser = argparse.ArgumentParser(description="Parse SFU Review Corpus into benchmark TSV.")
     parser.add_argument(
         "--corpus_dir",
-        required=True,
+        default=str(RAW_CORPUS_DIR),
         help="Path to the SFU_Review_Corpus_Negation_Speculation directory"
     )
     parser.add_argument(
         "--output_path",
-        default="sfu_benchmark.tsv",
-        help="Output TSV file path (default: sfu_benchmark.tsv)"
+        default=str(PROCESSED_DIR / "sfu_benchmark.tsv"),
+        help="Output TSV file path"
     )
     args = parser.parse_args()
 
@@ -147,12 +152,14 @@ def main():
 
     # Write TSV (tab delimiter avoids column bleeding from commas in sentences)
     fieldnames = ["sentence", "label", "domain", "is_hedged", "source_file"]
-    with open(args.output_path, "w", newline="", encoding="utf-8") as f:
+    output_path = Path(args.output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t")
         writer.writeheader()
         writer.writerows(records)
 
-    print(f"Saved {len(records)} sentences to: {args.output_path}")
+    print(f"Saved {len(records)} sentences to: {output_path}")
 
 
 if __name__ == "__main__":

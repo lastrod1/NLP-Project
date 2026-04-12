@@ -1,5 +1,9 @@
 import argparse
+from pathlib import Path
 import pandas as pd
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 def main():
     def normalize_bool(series):
@@ -13,22 +17,22 @@ def main():
     )
     parser.add_argument(
         "--amazon_path",
-        default="training_data.tsv",
+        default=str(PROCESSED_DIR / "training_data.tsv"),
         help="Amazon training TSV from build_training_data.py"
     )
     parser.add_argument(
         "--sfu_path",
-        default="sfu_benchmark.tsv",
+        default=str(PROCESSED_DIR / "sfu_benchmark.tsv"),
         help="Full SFU parsed TSV from parse_sfu.py"
     )
     parser.add_argument(
         "--benchmark_path",
-        default="benchmark.tsv",
+        default=str(PROCESSED_DIR / "benchmark.tsv"),
         help="256-sentence benchmark TSV to exclude from SFU pool"
     )
     parser.add_argument(
         "--output_path",
-        default="training_combined.tsv",
+        default=str(PROCESSED_DIR / "training_combined.tsv"),
         help="Output combined training TSV"
     )
     parser.add_argument(
@@ -133,8 +137,10 @@ def main():
     print(f"  Direct sentences  : {direct}")
     print(f"  {'='*46}\n")
 
-    df_combined.to_csv(args.output_path, sep="\t", index=False)
-    print(f"Saved {total} sentences to: {args.output_path}")
+    output_path = Path(args.output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    df_combined.to_csv(output_path, sep="\t", index=False)
+    print(f"Saved {total} sentences to: {output_path}")
 
 
 if __name__ == "__main__":

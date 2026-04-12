@@ -1,6 +1,7 @@
 import argparse
 import csv
 import random
+from pathlib import Path
 import nltk
 from datasets import load_dataset
 
@@ -14,6 +15,8 @@ DATASET_CONFIG = f"raw_review_{CATEGORY}"
 
 MIN_WORDS = 6
 MAX_WORDS = 60
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 def get_label(rating):
     """Map star rating to binary label. Returns None for 3-star."""
@@ -124,8 +127,8 @@ def main():
     )
     parser.add_argument(
         "--output_path",
-        default="training_data.tsv",
-        help="Output TSV file path (default: training_data.tsv)"
+        default=str(PROCESSED_DIR / "training_data.tsv"),
+        help="Output TSV file path"
     )
     parser.add_argument(
         "--target",
@@ -160,12 +163,14 @@ def main():
 
     # Write TSV
     fieldnames = ["sentence", "label", "category", "augmented"]
-    with open(args.output_path, "w", newline="", encoding="utf-8") as f:
+    output_path = Path(args.output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t")
         writer.writeheader()
         writer.writerows(all_records)
 
-    print(f"Saved {len(all_records)} sentences to: {args.output_path}")
+    print(f"Saved {len(all_records)} sentences to: {output_path}")
 
 
 if __name__ == "__main__":

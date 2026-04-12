@@ -1,6 +1,7 @@
 import argparse
 import json
 import re
+from pathlib import Path
 import pandas as pd
 
 
@@ -38,6 +39,8 @@ CONJUNCTIONS = {
     "but", "although", "though", "however", "yet",
     "while", "whereas", "nevertheless", "despite",
 }
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_WEIGHTS_PATH = PROJECT_ROOT / "data" / "processed" / "weights.json"
 
 
 def _compile_cue_patterns():
@@ -56,7 +59,7 @@ class HedgeScorer:
     and a diminishing-returns aggregation formula.
     """
 
-    def __init__(self, weights_path="weights.json"):
+    def __init__(self, weights_path=DEFAULT_WEIGHTS_PATH):
         with open(weights_path, "r") as f:
             self.weights = json.load(f)
         self.cue_patterns = _compile_cue_patterns()
@@ -165,13 +168,13 @@ class HedgeScorer:
 _DEFAULT_SCORER = None
 
 
-def score_hedge(sentence, weights_path="weights.json"):
+def score_hedge(sentence, weights_path=DEFAULT_WEIGHTS_PATH):
     """
     Backward-compatible helper used by training scripts.
     Lazily caches the default scorer for repeated calls.
     """
     global _DEFAULT_SCORER
-    if weights_path == "weights.json":
+    if Path(weights_path) == DEFAULT_WEIGHTS_PATH:
         if _DEFAULT_SCORER is None:
             _DEFAULT_SCORER = HedgeScorer(weights_path)
         scorer = _DEFAULT_SCORER
@@ -185,7 +188,7 @@ def main():
     )
     parser.add_argument(
         "--weights",
-        default="weights.json",
+        default=str(DEFAULT_WEIGHTS_PATH),
         help="Path to weights.json from learn_weights.py"
     )
     parser.add_argument(

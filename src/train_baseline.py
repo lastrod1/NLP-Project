@@ -31,6 +31,7 @@ import argparse
 import json
 import os
 import random
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
@@ -43,6 +44,10 @@ from transformers import (
 )
 from torch.optim import AdamW
 from sklearn.metrics import accuracy_score, f1_score, classification_report
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 
 
 # ---------------------------------------------------------------------------
@@ -286,11 +291,11 @@ def main():
     parser = argparse.ArgumentParser(
         description="Fine-tune vanilla BERT baseline for HedgeBERT."
     )
-    parser.add_argument("--train_path",  default="training_combined.tsv",
+    parser.add_argument("--train_path",  default=str(PROCESSED_DIR / "training_combined.tsv"),
                         help="Combined training TSV (from build_combined_training.py)")
-    parser.add_argument("--bench_path",  default="benchmark.tsv",
+    parser.add_argument("--bench_path",  default=str(PROCESSED_DIR / "benchmark.tsv"),
                         help="256-sentence benchmark TSV (from build_benchmark.py)")
-    parser.add_argument("--output_dir",  default="./baseline_output",
+    parser.add_argument("--output_dir",  default=str(OUTPUTS_DIR / "baseline_output"),
                         help="Directory to save model and results")
     parser.add_argument("--model_name",  default="bert-base-uncased",
                         help="HuggingFace model name (default: bert-base-uncased)")

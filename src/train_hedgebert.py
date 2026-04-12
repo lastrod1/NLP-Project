@@ -38,6 +38,7 @@ import argparse
 import json
 import os
 import random
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import torch
@@ -53,6 +54,10 @@ from torch.optim import AdamW
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 
 from hedge_scorer import score_hedge
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
+OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 
 
 # ---------------------------------------------------------------------------
@@ -363,11 +368,11 @@ def main():
     parser = argparse.ArgumentParser(
         description="Fine-tune HedgeBERT (BERT + CLS hedge scalar injection)."
     )
-    parser.add_argument("--train_path",   default="training_combined.tsv")
-    parser.add_argument("--bench_path",   default="benchmark.tsv")
-    parser.add_argument("--output_dir",   default="./hedgebert_output")
+    parser.add_argument("--train_path",   default=str(PROCESSED_DIR / "training_combined.tsv"))
+    parser.add_argument("--bench_path",   default=str(PROCESSED_DIR / "benchmark.tsv"))
+    parser.add_argument("--output_dir",   default=str(OUTPUTS_DIR / "hedgebert_output"))
     parser.add_argument("--baseline_results",
-                        default="./baseline_output/results.json",
+                        default=str(OUTPUTS_DIR / "baseline_output" / "results.json"),
                         help="Path to baseline results.json for comparison")
     parser.add_argument("--model_name",   default="bert-base-uncased")
     parser.add_argument("--epochs",       type=int,   default=3)

@@ -1,6 +1,7 @@
 import argparse
 import json
 import re
+from pathlib import Path
 import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -40,6 +41,8 @@ CONJUNCTIONS = {
     "but", "although", "though", "however", "yet",
     "while", "whereas", "nevertheless", "despite",
 }
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 
 def compile_cue_patterns():
@@ -113,17 +116,17 @@ def main():
     )
     parser.add_argument(
         "--full_sfu",
-        default="sfu_benchmark.tsv",
+        default=str(PROCESSED_DIR / "sfu_benchmark.tsv"),
         help="Full parsed SFU TSV from parse_sfu.py (default: sfu_benchmark.tsv)"
     )
     parser.add_argument(
         "--benchmark",
-        default="benchmark.tsv",
+        default=str(PROCESSED_DIR / "benchmark.tsv"),
         help="256-sentence benchmark TSV to exclude from training (default: benchmark.tsv)"
     )
     parser.add_argument(
         "--output_weights",
-        default="weights.json",
+        default=str(PROCESSED_DIR / "weights.json"),
         help="Output path for learned weights JSON (default: weights.json)"
     )
     args = parser.parse_args()
@@ -192,10 +195,12 @@ def main():
         print(f"  {cat:<15} : {w:.4f}")
 
     # Save
-    with open(args.output_weights, "w") as f:
+    output_path = Path(args.output_weights)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w") as f:
         json.dump(weights, f, indent=2)
 
-    print(f"\nSaved weights to: {args.output_weights}")
+    print(f"\nSaved weights to: {output_path}")
 
 
 if __name__ == "__main__":

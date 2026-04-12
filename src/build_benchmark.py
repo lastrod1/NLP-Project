@@ -1,5 +1,9 @@
 import argparse
+from pathlib import Path
 import pandas as pd
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROCESSED_DIR = PROJECT_ROOT / "data" / "processed"
 
 MIN_WORDS = 6
 MAX_WORDS = 60
@@ -98,12 +102,12 @@ def main():
     )
     parser.add_argument(
         "--input_path",
-        default="sfu_benchmark.tsv",
+        default=str(PROCESSED_DIR / "sfu_benchmark.tsv"),
         help="Path to full parsed TSV from parse_sfu.py"
     )
     parser.add_argument(
         "--output_path",
-        default="benchmark.tsv",
+        default=str(PROCESSED_DIR / "benchmark.tsv"),
         help="Output path for the sampled benchmark TSV"
     )
     parser.add_argument(
@@ -125,8 +129,10 @@ def main():
     benchmark = sample_benchmark(df, seed=args.seed)
     print_stats(benchmark, label="Final Benchmark")
 
-    benchmark.to_csv(args.output_path, sep="\t", index=False)
-    print(f"  Saved {len(benchmark)} sentences to: {args.output_path}")
+    output_path = Path(args.output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    benchmark.to_csv(output_path, sep="\t", index=False)
+    print(f"  Saved {len(benchmark)} sentences to: {output_path}")
 
 
 if __name__ == "__main__":

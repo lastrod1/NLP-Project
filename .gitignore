@@ -209,3 +209,5 @@ __marimo__/
 # Big Files
 *_output/
 *.safetensors
+outputs/
+.DS_Store
