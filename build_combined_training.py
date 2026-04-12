@@ -1,47 +1,13 @@
-"""
-build_combined_training.py
-
-Combines two training sources for HedgeBERT fine-tuning:
-
-    Source 1 — Amazon Electronics (training_data.tsv)
-               Direct sentiment sentences, no hedge annotations
-               1500 sentences (750 pos / 750 neg)
-
-    Source 2 — SFU hedged sentences (sfu_benchmark.tsv)
-               Real human-annotated hedged sentences
-               500 sentences (250 pos / 250 neg)
-               Benchmark sentences excluded to prevent leakage
-
-Final training set: ~2000 sentences (75% direct, 25% hedged)
-
-Output TSV columns:
-    sentence   : sentence text
-    label      : 0 = negative, 1 = positive
-    source     : 'amazon' or 'sfu_hedged'
-    is_hedged  : False for Amazon, True for SFU hedged
-
-Usage:
-    python build_combined_training.py
-        --amazon_path training_data.tsv
-        --sfu_path sfu_benchmark.tsv
-        --benchmark_path benchmark.tsv
-        --output_path training_combined.tsv
-        --sfu_sample 500
-        --seed 42
-
-Requirements:
-    pip install pandas
-"""
-
 import argparse
 import pandas as pd
 
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main():
+    def normalize_bool(series):
+        return series.map(
+            lambda value: value if isinstance(value, bool)
+            else str(value).strip().lower() == "true"
+        )
+
     parser = argparse.ArgumentParser(
         description="Build combined HedgeBERT training data from Amazon + SFU."
     )
@@ -83,16 +49,12 @@ def main():
         print("[ERROR] --sfu_sample must be even for balanced pos/neg sampling")
         return
 
-    # ------------------------------------------------------------------
-    # Load Amazon sentences
-    # ------------------------------------------------------------------
-    print(f"\nLoading Amazon training data: {args.amazon_path}")
+    # Amazon sentences
     df_amazon = pd.read_csv(args.amazon_path, sep="\t")
     print(f"  Loaded {len(df_amazon)} sentences")
     print(f"  Positive: {(df_amazon['label'] == 1).sum()}")
     print(f"  Negative: {(df_amazon['label'] == 0).sum()}")
 
-    # Standardise columns
     df_amazon_out = pd.DataFrame({
         "sentence" : df_amazon["sentence"],
         "label"    : df_amazon["label"],
@@ -100,14 +62,12 @@ def main():
         "is_hedged": False,
     })
 
-    # ------------------------------------------------------------------
-    # Load SFU hedged sentences, excluding benchmark
-    # ------------------------------------------------------------------
-    print(f"\nLoading SFU corpus: {args.sfu_path}")
+    # SFU hedged sentences
     df_sfu = pd.read_csv(args.sfu_path, sep="\t")
+    if "is_hedged" in df_sfu.columns:
+        df_sfu["is_hedged"] = normalize_bool(df_sfu["is_hedged"])
     print(f"  Loaded {len(df_sfu)} total sentences")
 
-    print(f"Loading benchmark exclusion list: {args.benchmark_path}")
     df_bench = pd.read_csv(args.benchmark_path, sep="\t")
     bench_sentences = set(df_bench["sentence"].tolist())
     print(f"  Excluding {len(bench_sentences)} benchmark sentences")
@@ -120,7 +80,6 @@ def main():
 
     print(f"  Available hedged non-benchmark sentences: {len(df_sfu_hedged)}")
 
-    # Balanced sampling from SFU hedged pool
     per_class = args.sfu_sample // 2
     sfu_pos = df_sfu_hedged[df_sfu_hedged["label"] == 1]
     sfu_neg = df_sfu_hedged[df_sfu_hedged["label"] == 0]
@@ -149,15 +108,9 @@ def main():
         "is_hedged": True,
     })
 
-    # ------------------------------------------------------------------
-    # Combine and shuffle
-    # ------------------------------------------------------------------
     df_combined = pd.concat([df_amazon_out, df_sfu_out], ignore_index=True)
     df_combined = df_combined.sample(frac=1, random_state=args.seed).reset_index(drop=True)
 
-    # ------------------------------------------------------------------
-    # Stats
-    # ------------------------------------------------------------------
     total    = len(df_combined)
     pos      = (df_combined["label"] == 1).sum()
     neg      = (df_combined["label"] == 0).sum()
@@ -180,9 +133,6 @@ def main():
     print(f"  Direct sentences  : {direct}")
     print(f"  {'='*46}\n")
 
-    # ------------------------------------------------------------------
-    # Save
-    # ------------------------------------------------------------------
     df_combined.to_csv(args.output_path, sep="\t", index=False)
     print(f"Saved {total} sentences to: {args.output_path}")
 

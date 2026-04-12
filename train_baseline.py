@@ -57,6 +57,27 @@ def set_seed(seed: int):
         torch.cuda.manual_seed_all(seed)
 
 
+def resolve_device():
+    """Pick the best available accelerator for the current machine."""
+    if torch.cuda.is_available():
+        return torch.device("cuda"), "cuda"
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return torch.device("mps"), "mps"
+    return torch.device("cpu"), "cpu"
+
+
+def validate_split(val_split, n_rows):
+    if not 0 < val_split < 1:
+        raise ValueError("--val_split must be between 0 and 1.")
+    val_size = int(n_rows * val_split)
+    if val_size <= 0 or val_size >= n_rows:
+        raise ValueError(
+            "--val_split produces an empty train or validation set. "
+            "Use a value that leaves at least one row in each split."
+        )
+    return val_size
+
+
 # ---------------------------------------------------------------------------
 # Dataset
 # ---------------------------------------------------------------------------
@@ -76,12 +97,14 @@ class SentimentDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        return {
+        item = {
             "input_ids":      self.encodings["input_ids"][idx],
             "attention_mask": self.encodings["attention_mask"][idx],
-            "token_type_ids": self.encodings["token_type_ids"][idx],
             "labels":         self.labels[idx],
         }
+        if "token_type_ids" in self.encodings:
+            item["token_type_ids"] = self.encodings["token_type_ids"][idx]
+        return item
 
 
 # ---------------------------------------------------------------------------
@@ -95,7 +118,9 @@ def train_epoch(model, loader, optimizer, scheduler, device):
         optimizer.zero_grad()
         input_ids      = batch["input_ids"].to(device)
         attention_mask = batch["attention_mask"].to(device)
-        token_type_ids = batch["token_type_ids"].to(device)
+        token_type_ids = batch.get("token_type_ids")
+        if token_type_ids is not None:
+            token_type_ids = token_type_ids.to(device)
         labels         = batch["labels"].to(device)
 
         outputs = model(
@@ -128,7 +153,9 @@ def evaluate(model, loader, device):
         for batch in loader:
             input_ids      = batch["input_ids"].to(device)
             attention_mask = batch["attention_mask"].to(device)
-            token_type_ids = batch["token_type_ids"].to(device)
+            token_type_ids = batch.get("token_type_ids")
+            if token_type_ids is not None:
+                token_type_ids = token_type_ids.to(device)
             labels         = batch["labels"].to(device)
 
             outputs = model(
@@ -279,8 +306,10 @@ def main():
     set_seed(args.seed)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device, device_name = resolve_device()
     print(f"\nDevice: {device}")
+    if device_name == "cpu" and hasattr(torch.backends, "mps") and torch.backends.mps.is_built():
+        print("MPS support is built into PyTorch, but it is not available in this runtime.")
 
     # ── Load data ──────────────────────────────────────────────────────────
 
@@ -304,7 +333,7 @@ def main():
     # ── Train / val split ──────────────────────────────────────────────────
 
     train_df = train_df.sample(frac=1, random_state=args.seed).reset_index(drop=True)
-    val_size  = int(len(train_df) * args.val_split)
+    val_size  = validate_split(args.val_split, len(train_df))
     val_df    = train_df.iloc[:val_size].reset_index(drop=True)
     train_df  = train_df.iloc[val_size:].reset_index(drop=True)
     print(f"\nTrain: {len(train_df)}  Val: {len(val_df)}")
@@ -352,7 +381,7 @@ def main():
     print(f"{'='*50}")
 
     training_history = []
-    best_val_acc = 0.0
+    best_val_acc = -1.0
     best_model_dir = os.path.join(args.output_dir, "best_model")
 
     for epoch in range(1, args.epochs + 1):

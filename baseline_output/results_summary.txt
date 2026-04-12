@@ -1,0 +1,21 @@
+============================================================
+  HedgeBERT — Vanilla BERT Baseline Results
+============================================================
+
+[Training]
+  Epoch 1  train_loss=0.6287  val_acc=0.745
+  Epoch 2  train_loss=0.4357  val_acc=0.795
+  Epoch 3  train_loss=0.2708  val_acc=0.795
+
+[Benchmark — Overall]
+  Accuracy : 0.5859
+  Macro F1 : 0.5843
+
+[Benchmark — Hedged vs Direct Subsets]
+  hedged    n=128  acc=0.6172  macro_f1=0.6143
+  direct    n=128  acc=0.5547  macro_f1=0.5540
+
+  Accuracy gap (direct - hedged) : -0.0625
+  Interpretation : BERT scores 6.2 percentage points higher on hedged sentiment.
+
+============================================================

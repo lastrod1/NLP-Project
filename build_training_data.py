@@ -1,39 +1,12 @@
-"""
-build_training_data.py
-
-Downloads Amazon Reviews 2023 (Electronics category), filters by star rating,
-sentence-tokenizes reviews, applies quality filters, and samples a balanced
-training dataset for HedgeBERT fine-tuning.
-
-Output TSV columns:
-    sentence   : individual sentence from a review
-    label      : 0 = negative (1-2 star), 1 = positive (4-5 star)
-    category   : Amazon product category
-    augmented  : False for all rows (augmentation handled separately)
-
-Usage:
-    python build_training_data.py --output_path training_data.tsv
-                                  --target 1500
-                                  --seed 42
-
-Requirements:
-    pip install datasets nltk
-    python -c "import nltk; nltk.download('punkt')"
-"""
-
 import argparse
 import csv
 import random
 import nltk
 from datasets import load_dataset
 
-# Download punkt tokenizer if not already present
 nltk.download("punkt", quiet=True)
 nltk.download("punkt_tab", quiet=True)
 
-# ---------------------------------------------------------------------------
-# Config
-# ---------------------------------------------------------------------------
 
 CATEGORY       = "Electronics"
 DATASET_NAME   = "McAuley-Lab/Amazon-Reviews-2023"
@@ -41,10 +14,6 @@ DATASET_CONFIG = f"raw_review_{CATEGORY}"
 
 MIN_WORDS = 6
 MAX_WORDS = 60
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 def get_label(rating):
     """Map star rating to binary label. Returns None for 3-star."""
@@ -68,11 +37,6 @@ def tokenize_review(text):
         return nltk.sent_tokenize(text)
     except Exception:
         return [text]
-
-
-# ---------------------------------------------------------------------------
-# Main collector
-# ---------------------------------------------------------------------------
 
 def collect_sentences(target_per_class, seed):
     """
@@ -145,11 +109,6 @@ def collect_sentences(target_per_class, seed):
 
     return positives, negatives
 
-
-# ---------------------------------------------------------------------------
-# Stats
-# ---------------------------------------------------------------------------
-
 def print_stats(records):
     pos = sum(1 for r in records if r["label"] == 1)
     neg = sum(1 for r in records if r["label"] == 0)
@@ -158,11 +117,6 @@ def print_stats(records):
     print(f"  Positive        : {pos}")
     print(f"  Negative        : {neg}")
     print(f"  {'='*40}\n")
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(

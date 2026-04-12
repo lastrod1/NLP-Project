@@ -67,6 +67,27 @@ def set_seed(seed: int):
         torch.cuda.manual_seed_all(seed)
 
 
+def resolve_device():
+    """Pick the best available accelerator for the current machine."""
+    if torch.cuda.is_available():
+        return torch.device("cuda"), "cuda"
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return torch.device("mps"), "mps"
+    return torch.device("cpu"), "cpu"
+
+
+def validate_split(val_split, n_rows):
+    if not 0 < val_split < 1:
+        raise ValueError("--val_split must be between 0 and 1.")
+    val_size = int(n_rows * val_split)
+    if val_size <= 0 or val_size >= n_rows:
+        raise ValueError(
+            "--val_split produces an empty train or validation set. "
+            "Use a value that leaves at least one row in each split."
+        )
+    return val_size
+
+
 # ---------------------------------------------------------------------------
 # HedgeBERT Model
 # ---------------------------------------------------------------------------
@@ -107,11 +128,13 @@ class HedgeBERT(nn.Module):
         Returns:
             logits : tensor of shape (batch_size, 2)
         """
-        outputs = self.bert(
-            input_ids=input_ids,
-            attention_mask=attention_mask,
-            token_type_ids=token_type_ids,
-        )
+        bert_kwargs = {
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+        }
+        if token_type_ids is not None:
+            bert_kwargs["token_type_ids"] = token_type_ids
+        outputs = self.bert(**bert_kwargs)
         # CLS token representation — shape: (batch_size, 768)
         cls_vector = outputs.last_hidden_state[:, 0, :]
 
@@ -151,13 +174,15 @@ class HedgeDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        return {
+        item = {
             "input_ids":      self.encodings["input_ids"][idx],
             "attention_mask": self.encodings["attention_mask"][idx],
-            "token_type_ids": self.encodings["token_type_ids"][idx],
             "hedge_scalar":   self.hedge_scores[idx],
             "labels":         self.labels[idx],
         }
+        if "token_type_ids" in self.encodings:
+            item["token_type_ids"] = self.encodings["token_type_ids"][idx]
+        return item
 
 
 # ---------------------------------------------------------------------------
@@ -172,7 +197,8 @@ def train_epoch(model, loader, optimizer, scheduler, device, criterion):
         logits = model(
             input_ids      = batch["input_ids"].to(device),
             attention_mask = batch["attention_mask"].to(device),
-            token_type_ids = batch["token_type_ids"].to(device),
+            token_type_ids = batch["token_type_ids"].to(device)
+                             if "token_type_ids" in batch else None,
             hedge_scalars  = batch["hedge_scalar"].to(device),
         )
         loss = criterion(logits, batch["labels"].to(device))
@@ -197,7 +223,8 @@ def evaluate(model, loader, device, criterion):
             logits = model(
                 input_ids      = batch["input_ids"].to(device),
                 attention_mask = batch["attention_mask"].to(device),
-                token_type_ids = batch["token_type_ids"].to(device),
+                token_type_ids = batch["token_type_ids"].to(device)
+                                 if "token_type_ids" in batch else None,
                 hedge_scalars  = batch["hedge_scalar"].to(device),
             )
             loss = criterion(logits, batch["labels"].to(device))
@@ -356,8 +383,10 @@ def main():
     set_seed(args.seed)
     os.makedirs(args.output_dir, exist_ok=True)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device, device_name = resolve_device()
     print(f"\nDevice : {device}")
+    if device_name == "cpu" and hasattr(torch.backends, "mps") and torch.backends.mps.is_built():
+        print("MPS support is built into PyTorch, but it is not available in this runtime.")
     mode = "ABLATION MODE (random scalar)" if args.random_scalar else "HedgeBERT (real hedge scalar)"
     print(f"Mode   : {mode}")
 
@@ -385,19 +414,15 @@ def main():
 
     # ── Train / val split ──────────────────────────────────────────────────
 
+    train_df = train_df.copy()
+    train_df["hedge_score"] = train_scores
     train_df = train_df.sample(frac=1, random_state=args.seed).reset_index(drop=True)
-    train_scores_shuffled = [train_scores[i] for i in train_df.index] \
-        if hasattr(train_df, 'index') else train_scores
 
-    # Re-score after shuffle to keep alignment
-    sentences_list = train_df["sentence"].tolist()
-    train_scores   = [score_hedge(s) for s in sentences_list]
-
-    val_size     = int(len(train_df) * args.val_split)
+    val_size     = validate_split(args.val_split, len(train_df))
     val_df       = train_df.iloc[:val_size].reset_index(drop=True)
     train_df     = train_df.iloc[val_size:].reset_index(drop=True)
-    val_scores   = train_scores[:val_size]
-    train_scores = train_scores[val_size:]
+    val_scores   = val_df["hedge_score"].tolist()
+    train_scores = train_df["hedge_score"].tolist()
     print(f"\nTrain : {len(train_df)}  Val : {len(val_df)}")
 
     # ── Tokenizer & datasets ───────────────────────────────────────────────
@@ -442,7 +467,7 @@ def main():
     print(f"{'='*50}")
 
     training_history = []
-    best_val_acc     = 0.0
+    best_val_acc     = -1.0
     best_model_dir   = os.path.join(args.output_dir, "best_model")
     os.makedirs(best_model_dir, exist_ok=True)
 

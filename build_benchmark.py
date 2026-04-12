@@ -1,40 +1,17 @@
-"""
-build_benchmark.py
-
-Samples a balanced benchmark from the full SFU parsed TSV produced by
-parse_sfu.py. The benchmark is strictly balanced across:
-
-    - Subset:    hedged vs. direct (equal halves)
-    - Sentiment: positive vs. negative (equal within each subset)
-    - Domain:    exactly equal samples from all 8 domains
-
-Final size: 8 sentences x 8 domains x 4 cells = 256 sentences total
-
-    Cell breakdown:
-        hedged   + positive : 64  (8 per domain)
-        hedged   + negative : 64  (8 per domain)
-        direct   + positive : 64  (8 per domain)
-        direct   + negative : 64  (8 per domain)
-
-Usage:
-    python build_benchmark.py --input_path sfu_benchmark.tsv
-                              --output_path benchmark.tsv
-                              --seed 42
-"""
-
 import argparse
 import pandas as pd
-
-
-# ---------------------------------------------------------------------------
-# Quality filter
-# ---------------------------------------------------------------------------
 
 MIN_WORDS = 6
 MAX_WORDS = 60
 
+
+def normalize_bool(series):
+    return series.map(
+        lambda value: value if isinstance(value, bool)
+        else str(value).strip().lower() == "true"
+    )
+
 def quality_filter(df):
-    """Remove sentences that are too short, too long, or low quality."""
     word_counts = df["sentence"].str.split().str.len()
     mask = (word_counts >= MIN_WORDS) & (word_counts <= MAX_WORDS)
     before = len(df)
@@ -43,11 +20,6 @@ def quality_filter(df):
     print(f"  Quality filter: removed {before - after} sentences "
           f"(outside {MIN_WORDS}-{MAX_WORDS} word range)")
     return df
-
-
-# ---------------------------------------------------------------------------
-# Sampler
-# ---------------------------------------------------------------------------
 
 SAMPLES_PER_CELL = 8  # per domain per cell
 DOMAINS = ["BOOKS", "CARS", "COMPUTERS", "COOKWARE",
@@ -96,11 +68,6 @@ def sample_benchmark(df, seed):
     benchmark = pd.concat(sampled_parts, ignore_index=True)
     return benchmark
 
-
-# ---------------------------------------------------------------------------
-# Stats
-# ---------------------------------------------------------------------------
-
 def print_stats(df, label="Benchmark"):
     """Print a summary of the benchmark."""
     total   = len(df)
@@ -124,11 +91,6 @@ def print_stats(df, label="Benchmark"):
         print(f"    {domain:<12} total={len(d):>3}  "
               f"hedged={len(dh):>2}  direct={len(dd):>2}")
     print()
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(
@@ -155,19 +117,14 @@ def main():
     # Load
     print(f"\nLoading: {args.input_path}")
     df = pd.read_csv(args.input_path, sep="\t")
+    if "is_hedged" in df.columns:
+        df["is_hedged"] = normalize_bool(df["is_hedged"])
     print(f"  Loaded {len(df)} sentences")
 
-    # Quality filter
     df = quality_filter(df)
-
-    # Sample
-    print(f"\nSampling benchmark...")
     benchmark = sample_benchmark(df, seed=args.seed)
-
-    # Stats
     print_stats(benchmark, label="Final Benchmark")
 
-    # Save
     benchmark.to_csv(args.output_path, sep="\t", index=False)
     print(f"  Saved {len(benchmark)} sentences to: {args.output_path}")
 

@@ -1,0 +1,24 @@
+============================================================
+  ABLATION (random scalar)
+============================================================
+
+[Training]
+  Epoch 1  train_loss=0.6745  val_acc=0.7500
+  Epoch 2  train_loss=0.4245  val_acc=0.7850
+  Epoch 3  train_loss=0.2518  val_acc=0.7900
+
+[Benchmark — Overall]
+  Accuracy : 0.6094
+  Macro F1 : 0.609
+
+[Benchmark — Hedged vs Direct Subsets]
+  hedged    n=128  acc=0.6484  macro_f1=0.6482
+  direct    n=128  acc=0.5547  macro_f1=0.5544
+
+  Accuracy gap (direct - hedged) : -0.0937
+
+[Comparison vs Vanilla BERT Baseline]
+  Hedged acc delta : +0.0312  (improvement)
+  Direct acc delta : +0.0000  (regression)
+
+============================================================

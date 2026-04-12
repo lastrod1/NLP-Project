@@ -1,45 +1,10 @@
-"""
-hedge_scorer.py
-
-Rule-based hedge intensity scorer for HedgeBERT.
-Loads learned cue category weights from weights.json and scores
-any sentence as a float in [0.0, 1.0].
-
-The aggregation formula is:
-    score = 1 − ∏(1 − wᵢ)  for all detected cue instances i
-
-This gives diminishing returns — each additional cue adds hedging
-but the score never exceeds 1.0.
-
-Scope simplification: cues are scored only within the clause they
-appear in, not across conjunction boundaries.
-
-Usage as a module:
-    from hedge_scorer import HedgeScorer
-    scorer = HedgeScorer("weights.json")
-    score = scorer.score("I guess this product is sort of okay")
-    print(score)  # e.g. 0.891
-
-Usage from command line (score a single sentence):
-    python hedge_scorer.py --weights weights.json
-                           --sentence "I guess this is sort of decent"
-
-Usage from command line (score a TSV file):
-    python hedge_scorer.py --weights weights.json
-                           --input_tsv training_data.tsv
-                           --output_tsv training_data_scored.tsv
-"""
-
 import argparse
 import json
 import re
 import pandas as pd
 
 
-# ---------------------------------------------------------------------------
-# Cue inventory — must match learn_weights.py exactly
-# ---------------------------------------------------------------------------
-
+# Check learn_weights.py
 CUE_INVENTORY = {
     "epistemic": [
         "i think", "i believe", "i feel", "i guess", "i suppose",
@@ -75,9 +40,15 @@ CONJUNCTIONS = {
 }
 
 
-# ---------------------------------------------------------------------------
-# HedgeScorer class
-# ---------------------------------------------------------------------------
+def _compile_cue_patterns():
+    """Compile whole-word patterns so short cues do not match inside other words."""
+    patterns = {}
+    for category, cues in CUE_INVENTORY.items():
+        patterns[category] = []
+        for cue in cues:
+            pattern = re.compile(rf"\b{re.escape(cue)}\b", re.IGNORECASE)
+            patterns[category].append((cue, pattern))
+    return patterns
 
 class HedgeScorer:
     """
@@ -88,6 +59,7 @@ class HedgeScorer:
     def __init__(self, weights_path="weights.json"):
         with open(weights_path, "r") as f:
             self.weights = json.load(f)
+        self.cue_patterns = _compile_cue_patterns()
         self._validate_weights()
 
     def _validate_weights(self):
@@ -97,10 +69,13 @@ class HedgeScorer:
                 raise ValueError(
                     f"Missing weight for category '{cat}' in weights file."
                 )
-
-    # ------------------------------------------------------------------
-    # Scope helpers
-    # ------------------------------------------------------------------
+            weight = self.weights[cat]
+            if not isinstance(weight, (int, float)):
+                raise ValueError(f"Weight for category '{cat}' must be numeric.")
+            if not 0.0 <= float(weight) <= 1.0:
+                raise ValueError(
+                    f"Weight for category '{cat}' must be in [0.0, 1.0]."
+                )
 
     def _split_at_conjunctions(self, sentence):
         """Split sentence into clauses at conjunction boundaries."""
@@ -118,10 +93,6 @@ class HedgeScorer:
             if cue in clause:
                 return clause
         return sentence_lower
-
-    # ------------------------------------------------------------------
-    # Core scoring
-    # ------------------------------------------------------------------
 
     def _detect_cues(self, sentence):
         """
@@ -141,9 +112,13 @@ class HedgeScorer:
         all_cues.sort(key=lambda x: len(x[1]), reverse=True)
 
         for cat, cue in all_cues:
-            if cue in sent_lower and cue not in seen_cues:
+            pattern = next(
+                compiled for compiled_cue, compiled in self.cue_patterns[cat]
+                if compiled_cue == cue
+            )
+            if pattern.search(sent_lower) and cue not in seen_cues:
                 clause = self._get_clause_with_cue(sent_lower, cue)
-                if cue in clause:
+                if pattern.search(clause):
                     weight = self.weights[cat]
                     detected.append((cat, cue, weight))
                     seen_cues.add(cue)
@@ -187,9 +162,22 @@ class HedgeScorer:
         }
 
 
-# ---------------------------------------------------------------------------
-# CLI
-# ---------------------------------------------------------------------------
+_DEFAULT_SCORER = None
+
+
+def score_hedge(sentence, weights_path="weights.json"):
+    """
+    Backward-compatible helper used by training scripts.
+    Lazily caches the default scorer for repeated calls.
+    """
+    global _DEFAULT_SCORER
+    if weights_path == "weights.json":
+        if _DEFAULT_SCORER is None:
+            _DEFAULT_SCORER = HedgeScorer(weights_path)
+        scorer = _DEFAULT_SCORER
+    else:
+        scorer = HedgeScorer(weights_path)
+    return scorer.score(sentence)
 
 def main():
     parser = argparse.ArgumentParser(

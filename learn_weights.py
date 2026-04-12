@@ -1,21 +1,3 @@
-"""
-learn_weights.py
-
-Learns hedge cue category weights from SFU corpus using logistic regression.
-The learned coefficients are normalized to [0,1] and saved as weights.json,
-which hedge_scorer.py loads at runtime.
-
-The 256 benchmark sentences are excluded from training to prevent leakage.
-
-Usage:
-    python learn_weights.py --full_sfu sfu_benchmark.tsv
-                            --benchmark benchmark.tsv
-                            --output_weights weights.json
-
-Requirements:
-    pip install scikit-learn pandas numpy
-"""
-
 import argparse
 import json
 import re
@@ -24,13 +6,6 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import classification_report
-
-
-# ---------------------------------------------------------------------------
-# Cue inventory
-# Each category maps to a list of cue strings (lowercased).
-# Multi-word cues are matched as substrings.
-# ---------------------------------------------------------------------------
 
 CUE_INVENTORY = {
     "epistemic": [
@@ -61,16 +36,24 @@ CUE_INVENTORY = {
     ],
 }
 
-# Conjunction boundary markers for scope simplification
 CONJUNCTIONS = {
     "but", "although", "though", "however", "yet",
     "while", "whereas", "nevertheless", "despite",
 }
 
 
-# ---------------------------------------------------------------------------
-# Scope handling
-# ---------------------------------------------------------------------------
+def compile_cue_patterns():
+    """Compile whole-word regexes so short cues like 'can' stay well-behaved."""
+    patterns = {}
+    for category, cues in CUE_INVENTORY.items():
+        patterns[category] = []
+        for cue in cues:
+            pattern = re.compile(rf"\b{re.escape(cue)}\b", re.IGNORECASE)
+            patterns[category].append((cue, pattern))
+    return patterns
+
+
+CUE_PATTERNS = compile_cue_patterns()
 
 def split_at_conjunctions(sentence):
     """
@@ -93,11 +76,6 @@ def get_clause_with_cue(sentence, cue):
             return clause
     return sentence.lower()
 
-
-# ---------------------------------------------------------------------------
-# Feature extraction
-# ---------------------------------------------------------------------------
-
 def count_cues_per_category(sentence):
     """
     Count how many cues from each category appear in the sentence.
@@ -107,12 +85,12 @@ def count_cues_per_category(sentence):
     sent_lower = sentence.lower()
     counts = {cat: 0 for cat in CUE_INVENTORY}
 
-    for category, cues in CUE_INVENTORY.items():
-        for cue in cues:
-            if cue in sent_lower:
+    for category, cue_patterns in CUE_PATTERNS.items():
+        for cue, pattern in cue_patterns:
+            if pattern.search(sent_lower):
                 # Check which clause the cue lives in
                 clause = get_clause_with_cue(sent_lower, cue)
-                if cue in clause:
+                if pattern.search(clause):
                     counts[category] += 1
 
     return counts
@@ -128,11 +106,6 @@ def extract_features(sentences):
         counts = count_cues_per_category(sent)
         rows.append([counts[cat] for cat in categories])
     return np.array(rows), categories
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(

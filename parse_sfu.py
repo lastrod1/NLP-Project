@@ -1,33 +1,7 @@
-"""
-parse_sfu.py
-
-Parses the SFU Review Corpus (Negation and Speculation annotations) into a
-CSV benchmark file with hedged and direct sentence subsets.
-
-Usage:
-    python parse_sfu.py --corpus_dir /path/to/SFU_Review_Corpus_Negation_Speculation
-                        --output_path /path/to/sfu_benchmark.tsv
-
-Output TSV columns:
-    sentence    : reconstructed sentence text
-    label       : 0 = negative, 1 = positive
-    domain      : BOOKS, CARS, COMPUTERS, etc.
-    is_hedged   : True if sentence contains >= 1 speculation cue, else False
-    source_file : original XML filename for traceability
-
-Note: Tab-separated format is used to avoid column bleeding caused by
-commas naturally present in review sentences.
-"""
-
 import os
 import csv
 import argparse
 from xml.etree import ElementTree as ET
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 def get_label(filename):
     """Derive sentiment label from filename prefix.
@@ -74,11 +48,6 @@ def sentence_has_speculation(sentence_element):
             return True
     return False
 
-
-# ---------------------------------------------------------------------------
-# Parser
-# ---------------------------------------------------------------------------
-
 def parse_corpus(corpus_dir):
     """Walk corpus directory, parse all XML files, return list of sentence dicts."""
     records = []
@@ -124,11 +93,6 @@ def parse_corpus(corpus_dir):
 
     return records
 
-
-# ---------------------------------------------------------------------------
-# Stats
-# ---------------------------------------------------------------------------
-
 def print_stats(records):
     """Print a summary of the parsed corpus."""
     total     = len(records)
@@ -158,11 +122,6 @@ def print_stats(records):
     print(f"    Direct + positive : {sum(1 for r in direct if r['label'] == 1)}")
     print(f"    Direct + negative : {sum(1 for r in direct if r['label'] == 0)}")
     print()
-
-
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(description="Parse SFU Review Corpus into benchmark TSV.")
