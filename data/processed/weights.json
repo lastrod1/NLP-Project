@@ -1,7 +1,7 @@
 {
-  "epistemic": 0.6087,
+  "epistemic": 0.5411,
   "modal": 0.9,
-  "approximator": 0.1,
-  "diminisher": 0.1055,
-  "conditional": 0.4963
+  "approximator": 0.1181,
+  "diminisher": 0.1,
+  "conditional": 0.7686
 }
