@@ -17,4 +17,8 @@ echo "Running HedgeBERT training..."
 "${ROOT_DIR}/scripts/run_hedgebert.sh"
 
 echo
+echo "Running Ablation training..."
+"${ROOT_DIR}/scripts/ablation.sh"
+
+echo
 echo "Training runs finished."
