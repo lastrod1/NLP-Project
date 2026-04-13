@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Big Files
+*_output/
+*.safetensors
+outputs/
+.DS_Store
