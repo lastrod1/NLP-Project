@@ -38,8 +38,8 @@ def main():
     parser.add_argument(
         "--sfu_sample",
         type=int,
-        default=500,
-        help="Number of SFU hedged sentences to include (default: 500)"
+        default=1000,
+        help="Number of SFU hedged sentences to include (default: 1000)"
     )
     parser.add_argument(
         "--seed",
