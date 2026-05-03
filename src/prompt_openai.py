@@ -23,8 +23,6 @@ Output:
     <output_dir>/results_summary.txt  -- human-readable summary
     <output_dir>/predictions.tsv      -- per-sentence predictions
 
-Requirements:
-    pip install openai pandas
 """
 
 import argparse

@@ -31,9 +31,6 @@ Output:
     <output_dir>/results_summary.txt  -- human-readable summary
     <output_dir>/predictions.tsv      -- per-sentence predictions
 
-Requirements:
-    pip install transformers torch accelerate pandas
-    pip install bitsandbytes   # only needed for --load_in_4bit
 """
 
 import argparse
