@@ -10,13 +10,12 @@ if [[ -d "${ROOT_DIR}/venv" ]]; then
 fi
 
 python3 "${ROOT_DIR}/src/train_hf_sequence_classifier.py" \
-  --model_name "meta-llama/Llama-2-7b-hf" \
-  --model_label "Llama 2 7B" \
+  --model_name "facebook/bart-base" \
+  --model_label "BART Base" \
   --train_path "${ROOT_DIR}/data/processed/training_combined.tsv" \
   --bench_path "${ROOT_DIR}/data/processed/benchmark.tsv" \
-  --output_dir "${ROOT_DIR}/outputs/llama2_output" \
-  --epochs 2 \
-  --batch_size 1 \
-  --lr 1e-5 \
+  --output_dir "${ROOT_DIR}/outputs/bart_output" \
+  --epochs 3 \
+  --batch_size 8 \
   --seed 42 \
   "$@"

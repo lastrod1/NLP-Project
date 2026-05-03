@@ -245,6 +245,11 @@ def main():
     parser.add_argument("--val_split", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--trust_remote_code", action="store_true")
+    parser.add_argument(
+        "--hf_token",
+        default=os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_HUB_TOKEN"),
+        help="Optional Hugging Face token for gated/private models",
+    )
     args = parser.parse_args()
 
     set_seed(args.seed)
@@ -279,6 +284,7 @@ def main():
         tokenizer_name,
         trust_remote_code=args.trust_remote_code,
         use_fast=True,
+        token=args.hf_token,
     )
     if tokenizer.pad_token is None:
         if tokenizer.eos_token is None:
@@ -306,6 +312,7 @@ def main():
         args.model_name,
         num_labels=2,
         trust_remote_code=args.trust_remote_code,
+        token=args.hf_token,
     )
     if getattr(model.config, "pad_token_id", None) is None and tokenizer.pad_token_id is not None:
         model.config.pad_token_id = tokenizer.pad_token_id
