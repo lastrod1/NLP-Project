@@ -18,7 +18,16 @@ echo "Running HedgeBERT training..."
 
 echo
 echo "Running Ablation training..."
-"${ROOT_DIR}/scripts/ablation.sh"
+"${ROOT_DIR}/scripts/run_ablation.sh"
+
+echo "Running BART training..."
+"${ROOT_DIR}/scripts/run_bart.sh"
+
+echo "Running Electra training..."
+"${ROOT_DIR}/scripts/run_electra.sh"
+
+echo "Running small bert training..."
+"${ROOT_DIR}/scripts/run_small_bert.sh"
 
 echo
 echo "Training runs finished."

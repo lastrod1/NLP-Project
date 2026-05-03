@@ -22,9 +22,6 @@ def get_label(filename):
 
 
 def reconstruct_sentence(sentence_element):
-    """Reconstruct raw sentence text from all <W> tokens in a <SENTENCE> tag.
-    Joins tokens with spaces and cleans up punctuation spacing.
-    """
     tokens = [w.text for w in sentence_element.iter("W") if w.text]
     if not tokens:
         return ""
