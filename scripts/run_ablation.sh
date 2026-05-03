@@ -14,8 +14,8 @@ python3 "${ROOT_DIR}/src/train_hedgebert.py" \
   --bench_path "${ROOT_DIR}/data/processed/benchmark.tsv" \
   --output_dir "${ROOT_DIR}/outputs/ablation_output" \
   --baseline_results "${ROOT_DIR}/outputs/baseline_output/results.json" \
-  --epochs 3 \
+  --epochs 5 \
   --batch_size 16 \
-  --seed 42 \
+  --seed 67 \
   --random_scalar \
   "$@"

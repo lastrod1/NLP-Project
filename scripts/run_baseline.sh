@@ -14,7 +14,7 @@ python3 "${ROOT_DIR}/src/train_baseline.py" \
   --train_path "${ROOT_DIR}/data/processed/training_combined.tsv" \
   --bench_path "${ROOT_DIR}/data/processed/benchmark.tsv" \
   --output_dir "${ROOT_DIR}/outputs/baseline_output" \
-  --epochs 3 \
+  --epochs 5 \
   --batch_size 16 \
-  --seed 42 \
+  --seed 67 \
   "$@"
