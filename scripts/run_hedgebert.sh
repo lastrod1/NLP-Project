@@ -17,5 +17,5 @@ python3 "${ROOT_DIR}/src/train_hedgebert.py" \
   --baseline_results "${ROOT_DIR}/outputs/baseline_output/results.json" \
   --epochs 5 \
   --batch_size 16 \
-  --seed 67 \
+  --seed 41 \
   "$@"

@@ -9,12 +9,12 @@ if [[ -d "${ROOT_DIR}/venv" ]]; then
   source "${ROOT_DIR}/venv/bin/activate"
 fi
 
-python3 "${ROOT_DIR}/src/train_hedgebert.py" \
+python3 "${ROOT_DIR}/src/train_hf_sequence_classifier.py" \
   --model_name "google/bert_uncased_L-4_H-256_A-4" \
+  --model_label "Small BERT Baseline" \
   --train_path "${ROOT_DIR}/data/processed/training_combined.tsv" \
   --bench_path "${ROOT_DIR}/data/processed/benchmark.tsv" \
-  --output_dir "${ROOT_DIR}/outputs/small_hedgebert_output" \
-  --baseline_results "${ROOT_DIR}/outputs/small_bert_output/results.json" \
+  --output_dir "${ROOT_DIR}/outputs/small_bert_output" \
   --epochs 5 \
   --batch_size 16 \
   --seed 67 \
